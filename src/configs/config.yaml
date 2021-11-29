@@ -1,0 +1,46 @@
+DATA:
+    PATH: data
+    DOWNLOAD: true
+    FEWSHOT: 0
+    SHORT_DATASET_NAME: AtoW
+    LONG_DATASET_NAME: Amazon to Webcam
+    DATASET_GROUP: office31
+    WEIGHT_TYPE: natural
+    SIZE_TYPE: source
+    SOURCE: amazon
+    TARGET: webcam
+    VAL_SPLIT_RATIO: 0.2
+
+MODEL:
+    NAME: resnet50
+    NUM_CLASSES: 31
+
+PARAMS:
+    BATCH_SIZE: 32
+    LR: 0.001
+    LAMBDA: 1.0
+    
+GENERAL:
+    FREEZE: true
+    SEED: 4107
+    GPUS:
+    - 2
+    EPOCH: 20
+    DEBUG: true
+    NUM_WORKERS: 8
+    
+CALLBACKS:
+    MODEL_CHECKPOINT:
+        PARAMS:
+            save_weights_only: false
+            save_top_k: 1
+            monitor: val_loss
+            verbose: true
+            mode: min
+    EARLY_STOPPING:
+        FLAG: false
+        PARAMS:
+            monitor: val_loss
+            min_delta: 0.00
+            patience: 3
+            verbose: true
