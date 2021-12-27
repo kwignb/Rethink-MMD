@@ -113,15 +113,12 @@ class MultiDomainDatasets(DomainsDatasetBase):
         self._target_by_split["test"] = self._target_access.get_test()
 
         if self._n_fewshot is not None and self._n_fewshot > 0:
-            # semi-supervised target domain
             self._labeled_target_by_split = {}
-            for part in ["train", "valid", "test"]:
-                (
-                    self._labeled_target_by_split[part],
-                    self._target_by_split[part],
-                ) = _split_dataset_few_shot(
+            for part in ["train", "valid"]:
+                self._labeled_target_by_split[part] = _split_dataset_few_shot(
                     self._target_by_split[part], self._n_fewshot
                 )
+            self._labeled_target_by_split["test"] = self._target_by_split["test"]
 
     def get_domain_loaders(self, split="train", batch_size=32):
         source_ds = self._source_by_split[split]
@@ -141,29 +138,20 @@ class MultiDomainDatasets(DomainsDatasetBase):
                 n_batches=max(n_dataset // batch_size, 1),
             )
         else:
-            # semi-supervised target domain
+            # Few-shot supervised target domain
             target_labeled_ds = self._labeled_target_by_split[split]
-            target_unlabeled_ds = target_ds
             # label domain: always balanced
             target_labeled_loader = SamplingConfig(
                 balance=True, class_weights=None
-            ).create_loader(
-                target_labeled_ds, batch_size=min(len(target_labeled_ds), batch_size)
-            )
-            target_unlabeled_loader = self._target_sampling_config.create_loader(
-                target_unlabeled_ds, batch_size
-            )
-            n_dataset = DatasetSizeType.get_size(
-                self._size_type, source_ds, target_labeled_ds, target_unlabeled_ds
-            )
-            return MultiDataLoader(
-                dataloaders=[
-                    source_loader,
-                    target_labeled_loader,
-                    target_unlabeled_loader,
-                ],
-                n_batches=max(n_dataset // batch_size, 1),
-            )
+            ).create_loader(target_labeled_ds,
+                            batch_size=min(len(target_labeled_ds), batch_size))
+            
+            n_dataset = DatasetSizeType.get_size(self._size_type,
+                                                 source_ds,
+                                                 target_labeled_ds)
+            
+            return MultiDataLoader(dataloaders=[source_loader, target_labeled_loader], 
+                                   n_batches=max(n_dataset // batch_size, 1))
 
     def __len__(self):
         source_ds = self._source_by_split["train"]
@@ -178,30 +166,25 @@ class MultiDomainDatasets(DomainsDatasetBase):
 
 
 def _split_dataset_few_shot(dataset, n_fewshot, random_state=None):
-    if n_fewshot <= 0:
-        raise ValueError(f"n_fewshot should be > 0, not '{n_fewshot}'")
-    assert n_fewshot > 0
+    
     labels = get_labels(dataset)
     classes = sorted(set(labels))
-    if n_fewshot < 1:
-        max_few = len(dataset) // len(classes)
-        n_fewshot = round(max_few * n_fewshot)
     n_fewshot = int(round(n_fewshot))
 
     random_state = check_random_state(random_state)
     # sample n_fewshot items per class from last dataset
     tindices = []
-    uindices = []
     for class_ in classes:
         indices = np.where(labels == class_)[0]
         random_state.shuffle(indices)
-        head, tail = np.split(indices, [n_fewshot])
+        head, _ = np.split(indices, [n_fewshot])
+        
         assert len(head) == n_fewshot
+        
         tindices.append(head)
-        uindices.append(tail)
     tindices = np.concatenate(tindices)
-    uindices = np.concatenate(uindices)
+    
     assert len(tindices) == len(classes) * n_fewshot
+    
     labeled_dataset = torch.utils.data.Subset(dataset, tindices)
-    unlabeled_dataset = torch.utils.data.Subset(dataset, uindices)
-    return labeled_dataset, unlabeled_dataset
+    return labeled_dataset

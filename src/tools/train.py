@@ -39,7 +39,8 @@ def train(cfg, output_path):
         benchmark=True,
         accumulate_grad_batches=1,
         callbacks=callbacks,
-        logger=[csv_logger, wandb_logger]
+        logger=[csv_logger, wandb_logger],
+        log_every_n_steps=30
     )
     
     model = AdaptTrainer(cfg)

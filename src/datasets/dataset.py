@@ -9,6 +9,7 @@ from torch.utils.data.sampler import RandomSampler, BatchSampler
 
 from src.datasets.da_dataset import MultiDomainDatasets
 from src.datasets.office31 import Office31Dataset
+from src.datasets.concrete import ConcreteDataset
 from src.datasets.sampler import SamplingConfig
 
 
@@ -74,10 +75,10 @@ class DatasetFactory:
                 - int or None: the input dimension
                 - int or None: the number of channels for images
         """
-        if self.dataset_group == "digits":
-            return 10, 784, (self._num_channels,)
         if self.dataset_group == "office31":
             return 31, None, ()
+        if self.dataset_group == "concrete":
+            return 2, None, ()
 
     def get_data_short_name(self):
         return self.short_name
@@ -85,15 +86,12 @@ class DatasetFactory:
     def get_data_long_name(self):
         return self.long_name
 
-    # def get_data_hash(self):
-    #     return param_to_hash(self._data_config)
-
     def _create_dataset(self, random_state):
         random_state = check_random_state(random_state)
-        if self.dataset_group == "digits":
-            src, tgt = self._create_digits_access()
-        elif self.dataset_group == "office31":
+        if self.dataset_group == "office31":
             src, tgt = self._create_office31_access()
+        elif self.dataset_group == 'concrete':
+            src, tgt = self._create_concrete_access()
         else:
             raise NotImplementedError(
                 f"Unknown dataset type, you can need your own dataset here: {__file__}"
@@ -128,18 +126,6 @@ class DatasetFactory:
             n_fewshot=self.n_fewshot,
         )
     
-    def _create_digits_access(self):
-        (
-            source_access,
-            target_access,
-            self._num_channels,
-        ) = digits.DigitDataset.get_accesses(
-            digits.DigitDataset(self.source.upper()),
-            digits.DigitDataset(self.target.upper()),
-            data_path=self.data_path,
-        )
-        return source_access, target_access
-    
     def _create_office31_access(self):
         source_access, target_access = Office31Dataset.get_accesses(
             Office31Dataset(self.source.lower()),
@@ -147,3 +133,13 @@ class DatasetFactory:
             data_path=self.data_path,
         )
         return source_access, target_access
+    
+    def _create_concrete_access(self):
+        source_access, target_access = ConcreteDataset.get_accesses(
+            ConcreteDataset(self.source.lower()),
+            ConcreteDataset(self.target.lower()),
+            data_path=self.data_path,
+        )
+        return source_access, target_access
+    
+    

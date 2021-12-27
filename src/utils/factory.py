@@ -12,7 +12,7 @@ def read_yaml(fpath='configs/config.yaml'):
 
 def move_file(cfg, op_path):
     
-    model_path = cfg.MODEL.NAME + '_cd_' + cfg.DATA.FORMAT
+    model_path = f'{cfg.MODEL.NAME}_{cfg.DATA.SHORT_DATASET_NAME}'
     from_path = op_path + '/' + model_path + '/' + model_path + '.ckpt'
     all_version_path = sorted(glob.glob(op_path + '/' + model_path + '/version_*'))
     

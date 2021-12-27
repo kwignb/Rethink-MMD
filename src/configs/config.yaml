@@ -1,32 +1,32 @@
 DATA:
     PATH: data
     DOWNLOAD: true
-    FEWSHOT: 0
-    SHORT_DATASET_NAME: AtoW
-    LONG_DATASET_NAME: Amazon to Webcam
-    DATASET_GROUP: office31
+    FEWSHOT: 1000
+    SHORT_DATASET_NAME: CtoS #AtoW
+    LONG_DATASET_NAME: CCIC to SDNET #Amazon to Webcam
+    DATASET_GROUP: concrete #office31
     WEIGHT_TYPE: natural
     SIZE_TYPE: source
-    SOURCE: amazon
-    TARGET: webcam
+    SOURCE: ccic #amazon
+    TARGET: sdnet #webcam
     VAL_SPLIT_RATIO: 0.2
 
 MODEL:
     NAME: resnet50
-    NUM_CLASSES: 31
+    NUM_CLASSES: 2 #31
 
 PARAMS:
     BATCH_SIZE: 32
-    LR: 0.001
+    LR: 1e-3
     LAMBDA: 1.0
     
 GENERAL:
     FREEZE: true
-    SEED: 4107
+    SEED: 253
     GPUS:
     - 2
     EPOCH: 20
-    DEBUG: true
+    DEBUG: false
     NUM_WORKERS: 8
     
 CALLBACKS:

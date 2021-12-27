@@ -33,7 +33,8 @@ class SamplingConfig:
 # TODO: deterministic shuffle?
 class MultiDataLoader:
     """
-    Batch Sampler for a MultiDataset. Iterates in parallel over different batch samplers for each dataset.
+    Batch Sampler for a MultiDataset. Iterates in parallel over
+    different batch samplers for each dataset.
     Yields batches [(x_1, y_1), ..., (x_s, y_s)] for s datasets.
     """
 
@@ -119,8 +120,8 @@ class BalancedBatchSampler(torch.utils.data.sampler.BatchSampler):
 
 class ReweightedBatchSampler(torch.utils.data.sampler.BatchSampler):
     """
-    BatchSampler - from a MNIST-like dataset, samples batch_size according to given input distribution
-    assuming multi-class labels
+    BatchSampler - from a MNIST-like dataset, samples batch_size 
+    according to given input distribution　assuming multi-class labels
     adapted from https://github.com/adambielski/siamese-triplet/blob/master/datasets.py
     """
 
